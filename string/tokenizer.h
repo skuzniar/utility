@@ -150,35 +150,6 @@ private:
     char             m_sep;
 };
 
-/*
-m_toksiz = m_tokenizer->m_str.find_first_of(m_tokenizer->m_sep, m_toksiz);
-if (m_toksiz == std::string_view::npos) {
-    m_toksiz = m_tokenizer->m_str.size();
-}
-
-
-
-
-    std::vector<std::string> result;
-
-    std::size_t searchPrevPos = 0, searchPos;
-    while( (searchPos = str.find_first_of( separators, searchPrevPos )) != std::string::npos ) {
-            if( searchPos >= searchPrevPos && ! compress ) {
-                    result.push_back( str.substr( searchPrevPos, searchPos - searchPrevPos ) );
-            }
-            else if( searchPos > searchPrevPos ) {
-                    result.push_back( str.substr( searchPrevPos, searchPos - searchPrevPos ) );
-            }
-
-            searchPrevPos = searchPos + 1;
-    }
-
-    if( searchPrevPos <= str.length() )
-            result.push_back( str.substr( searchPrevPos, std::string::npos ) );
-
-    return result;
-*/
-
 } // namespace O3::utils::string
 
 #endif
