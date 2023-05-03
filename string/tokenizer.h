@@ -86,7 +86,7 @@ public:
 
         friend iterator operator+(iterator i, unsigned a)
         {
-            for (int j = 0; j < a; ++j)
+            for (unsigned j = 0; j < a; ++j)
                 ++i;
             return i;
         }
