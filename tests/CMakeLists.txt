@@ -10,3 +10,6 @@ target_include_directories(diverter PUBLIC ..)
 add_executable(hexdump hexdump.cpp)
 target_include_directories(hexdump PUBLIC ..)
 
+add_executable(streamlog streamlog.cpp)
+target_include_directories(streamlog PUBLIC ..)
+
