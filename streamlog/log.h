@@ -125,14 +125,6 @@ class logat
 {
     const O& m_o;
 
-    template<class CharT, class Traits>
-    void print(std::basic_ostream<CharT, Traits>& os) const
-    {
-        if (detail::get_threshold(os) & L) {
-            os << m_o;
-        }
-    }
-
 public:
     explicit logat(const O& o)
       : m_o(o)
@@ -142,7 +134,9 @@ public:
     template<class CharT, class Traits>
     friend std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, const logat& x)
     {
-        x.print(os);
+        if (detail::get_threshold(os) & L) {
+            os << x.m_o;
+        }
         return os;
     }
 };
@@ -157,6 +151,44 @@ template<typename O> auto  info(const O& o) { return detail::logat<O, level::inf
 template<typename O> auto  warn(const O& o) { return detail::logat<O, level::warn> (o); }
 template<typename O> auto error(const O& o) { return detail::logat<O, level::error>(o); }
 template<typename O> auto fatal(const O& o) { return detail::logat<O, level::fatal>(o); }
+// clang-format on
+
+} // namespace log
+
+namespace detail {
+
+template<typename O>
+class paint
+{
+    const O&    m_o;
+    const char* m_c;
+
+public:
+    paint(const O& o, const char* c)
+      : m_o(o)
+      , m_c(c)
+    {
+    }
+
+    template<class CharT, class Traits>
+    friend std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, const paint& x)
+    {
+        return os << char(033) << '[' << x.m_c << 'm' << x.m_o << char(033) << '[' << '0' << 'm';
+    }
+};
+
+} // namespace detail
+
+namespace log {
+
+// clang-format off
+template<typename O> auto red    (const O& o) { return detail::paint<O>(o, "31"); }
+template<typename O> auto green  (const O& o) { return detail::paint<O>(o, "32"); }
+template<typename O> auto yellow (const O& o) { return detail::paint<O>(o, "33"); }
+template<typename O> auto blue   (const O& o) { return detail::paint<O>(o, "34"); }
+template<typename O> auto magenta(const O& o) { return detail::paint<O>(o, "35"); }
+template<typename O> auto cyan   (const O& o) { return detail::paint<O>(o, "36"); }
+template<typename O> auto white  (const O& o) { return detail::paint<O>(o, "37"); }
 // clang-format on
 
 } // namespace log

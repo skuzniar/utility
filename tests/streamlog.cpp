@@ -13,12 +13,12 @@ test_streamlog(log::threshold t)
 
     log::set(std::cout, t);
 
-    const auto n = log::name(t);
+    const auto* const n = log::name(t);
 
-    std::cout << "At threshold " << n << ": [" << "Unrestricted output"      << ']' << std::endl;
+    std::cout << "At threshold " << n << ": [" << "Unrestricted output" << ']' << std::endl;
     std::cout << "At threshold " << n << ": [" << log::debug("Debug output") << ']' << std::endl;
-    std::cout << "At threshold " << n << ": [" << log::info("Info output")   << ']' << std::endl;
-    std::cout << "At threshold " << n << ": [" << log::warn("Warn output")   << ']' << std::endl;
+    std::cout << "At threshold " << n << ": [" << log::info("Info output") << ']' << std::endl;
+    std::cout << "At threshold " << n << ": [" << log::warn("Warn output") << ']' << std::endl;
     std::cout << "At threshold " << n << ": [" << log::error("Error output") << ']' << std::endl;
     std::cout << "At threshold " << n << ": [" << log::fatal("Fatal output") << ']' << std::endl;
 }
