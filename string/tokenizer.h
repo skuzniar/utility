@@ -8,11 +8,12 @@
 
 #include <string_view>
 #include <iostream>
+#include <utility>
 
 namespace O3::utils::string {
 
 //----------------------------------------------------------------------------------------------------------------------
-// Character buffer tokenizer
+// String view buffer tokenizer
 //----------------------------------------------------------------------------------------------------------------------
 class tokenizer
 {
@@ -135,6 +136,13 @@ public:
     {
     }
 
+    tokenizer(std::string val, char sep)
+      : m_val(std::move(val))
+      , m_str(m_val)
+      , m_sep(sep)
+    {
+    }
+
     [[nodiscard]] iterator begin() const
     {
         return { *this, true };
@@ -146,6 +154,8 @@ public:
     }
 
 private:
+    std::string      m_val;
+
     std::string_view m_str;
     char             m_sep;
 };
