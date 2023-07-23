@@ -7,6 +7,7 @@
 #define O3_UTILS_STREAMLOG_LOG_H
 
 #include <ostream>
+#include <type_traits>
 
 namespace O3::utils::streamlog {
 
@@ -121,18 +122,39 @@ name(level t)
 namespace detail {
 
 template<typename O, level L>
-class logat
+class logval
+{
+    const O m_o;
+
+public:
+    explicit logval(O o)
+      : m_o(std::move(o))
+    {
+    }
+
+    template<class CharT, class Traits>
+    friend std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, const logval& x)
+    {
+        if (detail::get_threshold(os) & L) {
+            os << x.m_o;
+        }
+        return os;
+    }
+};
+
+template<typename O, level L>
+class logref
 {
     const O& m_o;
 
 public:
-    explicit logat(const O& o)
+    explicit logref(const O& o)
       : m_o(o)
     {
     }
 
     template<class CharT, class Traits>
-    friend std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, const logat& x)
+    friend std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, const logref& x)
     {
         if (detail::get_threshold(os) & L) {
             os << x.m_o;
@@ -146,11 +168,11 @@ public:
 namespace log {
 
 // clang-format off
-template<typename O> auto debug(const O& o) { return detail::logat<O, level::debug>(o); }
-template<typename O> auto  info(const O& o) { return detail::logat<O, level::info> (o); }
-template<typename O> auto  warn(const O& o) { return detail::logat<O, level::warn> (o); }
-template<typename O> auto error(const O& o) { return detail::logat<O, level::error>(o); }
-template<typename O> auto fatal(const O& o) { return detail::logat<O, level::fatal>(o); }
+template<typename O> auto debug(O&& o) {if constexpr (std::is_lvalue_reference_v<O>) {return detail::logref<O, level::debug>(o);} else {return detail::logval<O, level::debug>(std::forward<O>(o));}}
+template<typename O> auto  info(O&& o) {if constexpr (std::is_lvalue_reference_v<O>) {return detail::logref<O,  level::info>(o);} else {return detail::logval<O,  level::info>(std::forward<O>(o));}}
+template<typename O> auto  warn(O&& o) {if constexpr (std::is_lvalue_reference_v<O>) {return detail::logref<O,  level::warn>(o);} else {return detail::logval<O,  level::warn>(std::forward<O>(o));}}
+template<typename O> auto error(O&& o) {if constexpr (std::is_lvalue_reference_v<O>) {return detail::logref<O, level::error>(o);} else {return detail::logval<O, level::error>(std::forward<O>(o));}}
+template<typename O> auto fatal(O&& o) {if constexpr (std::is_lvalue_reference_v<O>) {return detail::logref<O, level::fatal>(o);} else {return detail::logval<O, level::fatal>(std::forward<O>(o));}}
 // clang-format on
 
 } // namespace log
@@ -158,20 +180,40 @@ template<typename O> auto fatal(const O& o) { return detail::logat<O, level::fat
 namespace detail {
 
 template<typename O>
-class paint
+class paintval
+{
+    const O     m_o;
+    const char* m_c;
+
+public:
+    paintval(O o, const char* c)
+      : m_o(std::move(o))
+      , m_c(c)
+    {
+    }
+
+    template<class CharT, class Traits>
+    friend std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, const paintval& x)
+    {
+        return os << char(033) << '[' << x.m_c << 'm' << x.m_o << char(033) << '[' << '0' << 'm';
+    }
+};
+
+template<typename O>
+class paintref
 {
     const O&    m_o;
     const char* m_c;
 
 public:
-    paint(const O& o, const char* c)
+    paintref(const O& o, const char* c)
       : m_o(o)
       , m_c(c)
     {
     }
 
     template<class CharT, class Traits>
-    friend std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, const paint& x)
+    friend std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os, const paintref& x)
     {
         return os << char(033) << '[' << x.m_c << 'm' << x.m_o << char(033) << '[' << '0' << 'm';
     }
@@ -182,13 +224,14 @@ public:
 namespace log {
 
 // clang-format off
-template<typename O> auto red    (const O& o) { return detail::paint<O>(o, "31"); }
-template<typename O> auto green  (const O& o) { return detail::paint<O>(o, "32"); }
-template<typename O> auto yellow (const O& o) { return detail::paint<O>(o, "33"); }
-template<typename O> auto blue   (const O& o) { return detail::paint<O>(o, "34"); }
-template<typename O> auto magenta(const O& o) { return detail::paint<O>(o, "35"); }
-template<typename O> auto cyan   (const O& o) { return detail::paint<O>(o, "36"); }
-template<typename O> auto white  (const O& o) { return detail::paint<O>(o, "37"); }
+template<typename O> auto     red(O&& o) {if constexpr (std::is_lvalue_reference_v<O>) {return detail::paintref(o, "31");} else {return detail::paintval(std::forward<O>(o), "31");}}
+template<typename O> auto   green(O&& o) {if constexpr (std::is_lvalue_reference_v<O>) {return detail::paintref(o, "32");} else {return detail::paintval(std::forward<O>(o), "32");}}
+template<typename O> auto  yellow(O&& o) {if constexpr (std::is_lvalue_reference_v<O>) {return detail::paintref(o, "33");} else {return detail::paintval(std::forward<O>(o), "33");}}
+template<typename O> auto    blue(O&& o) {if constexpr (std::is_lvalue_reference_v<O>) {return detail::paintref(o, "34");} else {return detail::paintval(std::forward<O>(o), "34");}}
+template<typename O> auto magenta(O&& o) {if constexpr (std::is_lvalue_reference_v<O>) {return detail::paintref(o, "35");} else {return detail::paintval(std::forward<O>(o), "35");}}
+template<typename O> auto    cyan(O&& o) {if constexpr (std::is_lvalue_reference_v<O>) {return detail::paintref(o, "36");} else {return detail::paintval(std::forward<O>(o), "36");}}
+template<typename O> auto   white(O&& o) {if constexpr (std::is_lvalue_reference_v<O>) {return detail::paintref(o, "37");} else {return detail::paintval(std::forward<O>(o), "37");}}
+
 // clang-format on
 
 } // namespace log
