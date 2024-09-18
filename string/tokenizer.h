@@ -8,7 +8,6 @@
 
 #include <string_view>
 #include <iostream>
-#include <utility>
 
 namespace O3::utils::string {
 
@@ -24,7 +23,8 @@ public:
     {
     private:
         iterator(const tokenizer& t, bool beg)
-          : m_tokenizer(&t)
+          : m_host(&t)
+          , m_epos(m_host->m_str.size())
         {
             beg ? begin() : end();
         }
@@ -39,12 +39,13 @@ public:
 
         token operator*() const
         {
-            return m_tokenizer->m_str.substr(m_tok_beg, m_tok_end - m_tok_beg);
+            auto len = m_tend - m_tbeg;
+            return m_host->m_str.substr(m_tbeg, len);
         }
 
         friend bool operator==(const iterator& a, const iterator& b)
         {
-            return a.m_tok_beg == b.m_tok_beg;
+            return a.m_tbeg == b.m_tbeg;
         }
 
         friend bool operator!=(const iterator& a, const iterator& b)
@@ -54,12 +55,12 @@ public:
 
         friend bool operator<(const iterator& a, const iterator& b)
         {
-            return a.m_tok_beg < b.m_tok_beg;
+            return a.m_tbeg < b.m_tbeg;
         }
 
         friend bool operator>(const iterator& a, const iterator& b)
         {
-            return a.m_tok_beg > b.m_tok_beg;
+            return a.m_tbeg > b.m_tbeg;
         }
 
         friend bool operator<=(const iterator& a, const iterator& b)
@@ -82,13 +83,17 @@ public:
         iterator& operator++()
         {
             increment();
+            while (m_host->m_skip_empty && m_tbeg == m_tend && m_tbeg != infinity) {
+                increment();
+            }
             return *this;
         }
 
         friend iterator operator+(iterator i, unsigned a)
         {
-            for (unsigned j = 0; j < a; ++j)
+            for (unsigned j = 0; j < a; ++j) {
                 ++i;
+            }
             return i;
         }
 
@@ -100,46 +105,44 @@ public:
     private:
         void begin()
         {
-            m_tok_beg = 0;
-            m_tok_end = m_tokenizer->m_str.find(m_tokenizer->m_sep, m_tok_beg);
+            m_tbeg = 0;
+            m_tend = std::min(m_epos, m_host->m_str.find_first_of(m_host->m_sep, m_tbeg));
+            while (m_host->m_skip_empty && m_tbeg == m_tend && m_tbeg != infinity) {
+                increment();
+            }
         }
 
         void end()
         {
-            m_tok_beg = m_tok_end = infinity;
+            m_tbeg = m_tend = infinity;
         }
 
         void increment()
         {
-            m_tok_beg = m_tok_end == infinity ? m_tok_end : m_tok_end + 1;
-            m_tok_end = m_tok_beg == infinity ? m_tok_beg : m_tokenizer->m_str.find(m_tokenizer->m_sep, m_tok_beg);
+            m_tbeg = m_tend == m_epos ? infinity : m_tend + 1;
+            m_tend = m_tend == m_epos ? infinity : std::min(m_epos, m_host->m_str.find_first_of(m_host->m_sep, m_tbeg));
         }
 
         friend std::ostream& operator<<(std::ostream& os, const iterator& it)
         {
-            return os << "bpos=" << it.m_tok_beg << ' ' << "epos=" << it.m_tok_end;
+            return os << "tbeg=" << it.m_tbeg << ' ' << "tend=" << it.m_tend << ' ' << "epos=" << it.m_epos
+                      << std::endl;
         }
 
         friend class tokenizer;
 
-        const tokenizer*            m_tokenizer = nullptr;
+        const tokenizer*            m_host = nullptr;
+        std::string_view::size_type m_tbeg = 0;
+        std::string_view::size_type m_tend = 0;
+        std::string_view::size_type m_epos = 0;
 
-        std::string_view::size_type m_tok_beg   = 0;
-        std::string_view::size_type m_tok_end   = 0;
-
-        static constexpr auto       infinity    = std::string_view::npos;
+        static constexpr auto infinity = std::string_view::npos;
     };
 
-    tokenizer(std::string_view str, char sep)
+    tokenizer(std::string_view str, std::string_view sep, bool skip_empty = false)
       : m_str(str)
       , m_sep(sep)
-    {
-    }
-
-    tokenizer(std::string val, char sep)
-      : m_val(std::move(val))
-      , m_str(m_val)
-      , m_sep(sep)
+      , m_skip_empty(skip_empty)
     {
     }
 
@@ -154,10 +157,9 @@ public:
     }
 
 private:
-    std::string      m_val;
-
     std::string_view m_str;
-    char             m_sep;
+    std::string_view m_sep;
+    bool             m_skip_empty = false;
 };
 
 } // namespace O3::utils::string

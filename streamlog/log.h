@@ -42,7 +42,7 @@ enum class level : int
 inline bool
 operator&(threshold t, level l)
 {
-    return static_cast<int>(t) & static_cast<int>(l);
+    return (static_cast<unsigned>(t) & static_cast<unsigned>(l)) != 0;
 }
 
 inline bool
@@ -121,14 +121,38 @@ name(level t)
 
 namespace detail {
 
-template<typename O, level L>
-class logval
+template<typename O>
+struct byval
 {
-    const O m_o;
+    O m_o;
 
+    explicit byval(O o)
+      : m_o(std::move(o))
+    {
+    }
+};
+
+template<typename O>
+struct byref
+{
+    const O& m_o;
+
+    explicit byref(const O& o)
+      : m_o(o)
+    {
+    }
+};
+
+} // namespace detail
+
+namespace detail {
+
+template<typename O, level L>
+class logval : byval<O>
+{
 public:
     explicit logval(O o)
-      : m_o(std::move(o))
+      : byval<O>(std::move(o))
     {
     }
 
@@ -143,13 +167,11 @@ public:
 };
 
 template<typename O, level L>
-class logref
+class logref : byref<O>
 {
-    const O& m_o;
-
 public:
     explicit logref(const O& o)
-      : m_o(o)
+      : byref<O>(o)
     {
     }
 
@@ -180,14 +202,12 @@ template<typename O> auto fatal(O&& o) {if constexpr (std::is_lvalue_reference_v
 namespace detail {
 
 template<typename O>
-class paintval
+class paintval : byval<O>
 {
-    const O     m_o;
     const char* m_c;
-
 public:
     paintval(O o, const char* c)
-      : m_o(std::move(o))
+      : byval<O>(std::move(o))
       , m_c(c)
     {
     }
@@ -200,14 +220,13 @@ public:
 };
 
 template<typename O>
-class paintref
+class paintref : byref<O>
 {
-    const O&    m_o;
     const char* m_c;
 
 public:
     paintref(const O& o, const char* c)
-      : m_o(o)
+      : byref<O>(o)
       , m_c(c)
     {
     }
