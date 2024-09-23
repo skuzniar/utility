@@ -20,10 +20,10 @@ test_keep_empty_tokenizer()
     std::tuple<const char*, int> tuples[] = { 
         {"",              1},
         {",",             2},
-        {",,",            3},
+        {",|",            3},
         {"Ala,ma,kota",   3},
         {",Ala,ma,kota",  4},
-        {",Ala,ma,kota,", 5}
+        {",Ala,ma,kota|", 5}
     };
     // clang-format on
 
@@ -32,7 +32,7 @@ test_keep_empty_tokenizer()
     std::cout << "Tokenizing string view, keeping empty tokens." << std::endl;
     for (const auto& tup : tuples) {
         std::cout << '[' << std::get<0>(tup) << ']' << std::endl;
-        for (const auto& tok : tokenizer(std::string_view(std::get<0>(tup)), ",", false)) {
+        for (const auto& tok : tokenizer(std::string_view(std::get<0>(tup)), ",|", false)) {
             std::cout << '<' << tok << '>';
         }
         std::cout << std::endl;
@@ -41,7 +41,7 @@ test_keep_empty_tokenizer()
     // Count tokens
     std::cout << "Counting tokens" << std::endl;
     for (const auto& t : tuples) {
-        auto  n = count(tokenizer(std::string_view(std::get<0>(t)), ",", false));
+        auto  n = count(tokenizer(std::string_view(std::get<0>(t)), ",|", false));
         std::cout << '[' << std::get<0>(t) << ']' << " -> " << '(' << n << ')' << std::endl;
         assert(n == std::get<1>(t));
     }
@@ -55,10 +55,10 @@ test_skip_empty_tokenizer()
     std::tuple<const char*, int> tuples[] = { 
         {"",              0},
         {",",             0},
-        {",,",            0},
+        {",|",            0},
         {"Ala,ma,kota",   3},
         {",Ala,ma,kota",  3},
-        {",Ala,ma,kota,", 3}
+        {",Ala,ma,kota|", 3}
     };
     // clang-format on
 
@@ -67,7 +67,7 @@ test_skip_empty_tokenizer()
     std::cout << "Tokenizing string view, skipping empty tokens." << std::endl;
     for (const auto& tup : tuples) {
         std::cout << '[' << std::get<0>(tup) << ']' << std::endl;
-        for (const auto& tok : tokenizer(std::string_view(std::get<0>(tup)), ",", true)) {
+        for (const auto& tok : tokenizer(std::string_view(std::get<0>(tup)), ",|", true)) {
             std::cout << '<' << tok << '>';
         }
         std::cout << std::endl;
@@ -76,7 +76,7 @@ test_skip_empty_tokenizer()
     // Count tokens
     std::cout << "Counting tokens" << std::endl;
     for (const auto& t : tuples) {
-        auto n = count(tokenizer(std::string_view(std::get<0>(t)), ",", true));
+        auto n = count(tokenizer(std::string_view(std::get<0>(t)), ",|", true));
         std::cout << '[' << std::get<0>(t) << ']' << " -> " << '(' << n << ')' << std::endl;
         assert(n == std::get<1>(t));
     }
