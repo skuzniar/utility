@@ -156,11 +156,23 @@ public:
         return { *this, false };
     }
 
+    template<template<typename...> class C, class T = std::string_view>
+    auto to() const
+    {
+        return C<T>{ begin(), end() };
+    }
+
 private:
     std::string_view m_str;
     std::string_view m_sep;
     bool             m_skip_empty = false;
 };
+
+inline tokenizer
+tokenize(std::string_view str, std::string_view sep, bool skip_empty = false)
+{
+    return {str, sep, skip_empty};
+}
 
 } // namespace O3::utils::string
 

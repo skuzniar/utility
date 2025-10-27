@@ -20,11 +20,11 @@ test_hexdump()
 }
 
 int
-main(int argc, char* argv[])
+main()
 {
     test_hexdump();
 
-    std::cout << "All basic tests passed." << std::endl;
+    std::cout << "All tests passed." << std::endl;
 
     return 0;
 }

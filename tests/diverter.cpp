@@ -21,11 +21,11 @@ test_diverter()
 }
 
 int
-main(int argc, char* argv[])
+main()
 {
     test_diverter();
 
-    std::cout << "All basic tests passed." << std::endl;
+    std::cout << "All tests passed." << std::endl;
 
     return 0;
 }

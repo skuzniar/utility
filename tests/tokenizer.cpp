@@ -83,12 +83,12 @@ test_skip_empty_tokenizer()
 }
 
 int
-main(int argc, char* argv[])
+main()
 {
     test_keep_empty_tokenizer();
     test_skip_empty_tokenizer();
 
-    std::cout << "All basic tests passed." << std::endl;
+    std::cout << "All tests passed." << std::endl;
 
     return 0;
 }

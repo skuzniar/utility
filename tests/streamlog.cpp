@@ -47,12 +47,12 @@ test_colors()
 }
 
 int
-main(int argc, char* argv[])
+main()
 {
     test_streamlog();
     test_colors();
 
-    std::cout << "All basic tests passed." << std::endl;
+    std::cout << "All tests passed." << std::endl;
 
     return 0;
 }
